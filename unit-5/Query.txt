@@ -1,0 +1,78 @@
+ 1. find largest population city in every state
+db.zips.aggregate([
+  { $sort: { state: 1, pop: -1 } }, {$group: {_id: "$state",city: { $first: "$city" },
+      pop: { $first: "$pop" }
+    }
+  }
+ 
+])
+
+2. find the average population per state by cities
+
+db.zips.aggregate([ { $group: { id: { state: "$state", city: "$city" }, pop: { $sum: "$pop" } } }, { $group: { id: "$_id.state", avgPopulation: { $avg: "$pop" } } } ])
+
+3. find the lowest population city
+
+  db.zips.aggregate([  { $sort: {pop: 1 } },{$limit:1}])
+
+
+
+
+1. Write an aggregation pipeline to get the total number of orders for each customer.
+
+db.order.aggregate([{$unwind:"$orders"}, { $group: { _id: "$name", total_orders: { $sum: "$orders.quantity" } } }])
+
+
+2. Write an aggregation pipeline to get the total price of all orders for each customer.
+
+db.order.aggregate([{$unwind:"$orders"}, { $group: { _id: "$name", totalPrice: { $sum: "$orders.price" } } }])
+
+3. Write an aggregation pipeline to get the average price of all orders for each customer.
+
+ db.order.aggregate([{$unwind:"$orders"}, { $group: { _id: "$name", avgPrice: { $avg: "$orders.price" } } }])
+
+4. Write an aggregation pipeline to get the highest price of all orders for each customer.
+
+db.order.aggregate([{$unwind:"$orders"},{$sort:{"orders.price":-1}}, { $group: { _id: "$name", avgPrice: { $fir
+$first: "$orders.price" } } }])
+
+5.Write an aggregation pipeline to get the lowest price of all orders for each customer.
+
+db.order.aggregate([{$unwind:"$orders"},{$sort:{"orders.price":1}}, { $group: { _id: "$name", avgPrice: { $first: "$orders.price" } } }])
+
+6. Write an aggregation pipeline to get the total number of orders and the total price of all orders for each customer.
+
+db.order.aggregate([ { $unwind: "$orders" }, { $group: { _id: "$name", totalPrice: { $sum: "$orders.price" },totalOrdes:{$sum:"$orders.quantity"} } }])
+
+7. Write an aggregation pipeline to get the total number of orders and the average price of all orders for each customer.
+db.order.aggregate([ { $unwind: "$orders" }, { $group: { _id: "$name", totalPrice: { $sum: "$orders.quantity" },totalAvg:{$avg:"$orders.price"} } }])
+
+8. Write an aggregation pipeline to get the highest price and the lowest price of all orders for each customer.
+
+ db.order.aggregate([ { $unwind: "$orders" },{$sort:{"orders.price":1}},{$group:{_id:"$name",highestPrice:{$last:"$orders.price"},lowestPrice:{$first:"$orders.price"}}}])
+
+9.Write an aggregation pipeline to get the total number of orders and the highest price of all orders for each customer.
+ db.order.aggregate([ { $unwind: "$orders" },{$sort:{"orders.price":1}},{$group:{_id:"$name",highestPrice:{$last:"$orders.price"},totalOrder:{$sum:"$orders.quantity"}}}])
+
+10. Write an aggregation pipeline to get the total number of orders, the total price, and the average price of all orders for each customer.
+db.order.aggregate([{$unwind:"$orders"}, { $group: { _id: "$name", total_orders: { $sum: "$orders.quantity" },avgPrice: { $avg: "$orders.price" },totalPrice: { $sum: "$orders.price" } } }])
+
+
+Filter out the cities with a population less than or equal to 5000.
+
+db.popu.aggregate([{$match:{pop:{$lt:5000}}}])
+
+Group the remaining cities by state and calculate the total population for each state.
+
+db.popu.aggregate([{$group:{_id:"$state",allPopulation:{$sum:"$pop"}}}])
+
+
+Sort the resulting documents by the total population in descending order.
+
+Skip the first 2 documents in the sorted list.
+
+Limit the output to 2 documents.
+
+Project the output to include only the state and total population fields.
+
+db.popu.aggregate([{$group:{_id:"$state",allPopulation:{$sum:"$pop"}}},{$sort:{allPopulation:-1}},{skip:2},{$limit:2},{$project:{_id:0,state:"$_id",allPopulation:1}}])
